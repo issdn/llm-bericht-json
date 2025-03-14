@@ -1,0 +1,7 @@
+.env
+lessons/
+*.pdf
+*.mht
+*.traineddata
+*.txt
+*.json
