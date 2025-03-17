@@ -1,5 +1,6 @@
 // import { createWorker } from 'tesseract.js';
 import { colors } from '@cliffy/ansi/colors';
+import * as fs from 'node:fs';
 
 // const dataBuffer = fs.readFileSync('./lessons/pgc/folien.pdf');
 // const { text } = await pdf(dataBuffer);
@@ -13,7 +14,7 @@ import { colors } from '@cliffy/ansi/colors';
 
 import { Command } from '@cliffy/command';
 import { spinner } from './spinner.ts';
-import { createJSONFromText } from './entry.ts';
+import { createJSONFromText, extractTextFromFile } from './entry.ts';
 import { spreadByTimeOnly } from './entry.ts';
 import dayjs from 'dayjs';
 import { DateRange, IncuriaError } from './types.ts';
@@ -37,6 +38,19 @@ function preprocessDates(dates: string[]) {
 await new Command()
   .name('incuria')
   .version('1.0.0')
+  .command('extract')
+  .option(
+    '-i, --input <input:string>',
+    'Datei die aus der der Text extrahiert werden soll.',
+    { required: true }
+  )
+  .option('-o, --output <output:string>', 'Wo Datei gespeichert werden soll.', {
+    default: './output.txt',
+  })
+  .action(async (options: { input: string; output: string }) => {
+    const text = await extractTextFromFile(options.input);
+    await fs.writeFileSync(options.output, text);
+  })
   .command('complete')
   .option(
     '-i, --input <input:string>',

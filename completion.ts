@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { spinner } from './spinner.ts';
-import { Entry } from './time_spread.ts';
+import { Entry } from './types.ts';
 
 const MAX_CHUNK_SIZE = 15000;
 
@@ -65,10 +65,10 @@ function splitByMaxLength(text: string, maxLength: number = MAX_CHUNK_SIZE) {
 }
 
 const context_prompt = `
-The user will give you a raw text of records of lessons. 
-Lessons are chronologically sorted and each lesson starts with a header like that: "LESSON 1".
-Each JSON Object in the array is STRICTLY a single LESSON so don't add or remove lessons. For every LESSON header there should be one JSON object.
-You have to create a JSON list with each lesson as an object with a title and a summary in format that I'll specify below.
+I will give you a raw text of records of lessons or a single lesson. 
+Lessons are chronologically sorted but they are not distinctively marked. You have to create a JSON list with each lesson as an object with a title and a summary in format that I'll specify below.
+Each JSON Object in the array is STRICTLY a single LESSON so don't add or remove lessons. You can however group the text based on topic if you're sure that it fits.
+NEVER include any dates or names or titles of people.
 Everything the "lessons" key inside the JSON has to be in German language.
 Anything inside <> is just a context for you. 
 
@@ -92,7 +92,7 @@ Here's the json format (simple list of objects):
 {
 "lessons":[{
     "qualifikationen": [<INSIDE THIS LIST PUT FEW OF THE QUALIFICATIONS THAT BEST FIT THE TITLE >],
-    "text": "<FITTING TITLE OF THE LESSON FEW WORDS ONLY>: <A ONE SENTENCE SUMMARY OF THE LESSON>"
+    "text": "<A ONE SENTENCE SUMMARY OF THE LESSON>"
 }, ...]
 }
 
@@ -132,8 +132,7 @@ EXAMPLE JSON FROM YOU:
 "lessons": [
   {
     "qualifikationen": ["Allgemeinbildende Fächer"],
-    "text": "Beschaffung und Einkauf: Was ein Unternehmen braucht (Arbeitskräfte, Betriebsmittel, Werkstoffe und Kapital) und wie wird das beschaffen"
+    "text": "Was ein Unternehmen braucht (Arbeitskräfte, Betriebsmittel, Werkstoffe und Kapital) und wie wird das beschaffen"
   },
   ...]
-  }
-`;
+  }`;
