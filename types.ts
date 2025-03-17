@@ -10,3 +10,5 @@ export interface DateRange {
   startDate: string | Date | Dayjs;
   endDate: string | Date | Dayjs;
 }
+
+export class IncuriaError extends Error {}

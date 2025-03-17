@@ -15,7 +15,11 @@ async function writeEntriesToFile(entries: Entry[], output: string) {
   await fs.writeFileSync(output, `{"lessons": ${JSON.stringify(entries)}}`);
 }
 
-export async function createJSONFromText(input: string, output: string) {
+export async function createJSONFromText(
+  input: string,
+  output: string,
+  dateRanges: DateRange[]
+) {
   const fileFormat = (input.split('.').at(-1) ?? '') as keyof typeof fnByFormat;
   const fn = fnByFormat[fileFormat];
   if (fn === undefined) {
@@ -27,12 +31,7 @@ export async function createJSONFromText(input: string, output: string) {
       extracted
     );
     spinner.text = 'Einträge werden zeitlich verteilt.';
-    const spreaded = spreadEntriesAcrossWeeks(entries, [
-      {
-        startDate: '2025-3-3',
-        endDate: '2025-3-24',
-      },
-    ]);
+    const spreaded = spreadEntriesAcrossWeeks(entries, dateRanges);
     spinner.text = 'Speichern...';
     await writeEntriesToFile(spreaded, output);
     if (invalidJSONCompletions.length > 0 || rejected.length > 0) {
