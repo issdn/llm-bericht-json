@@ -2,22 +2,13 @@
 import { colors } from '@cliffy/ansi/colors';
 import * as fs from 'node:fs';
 
-// const dataBuffer = fs.readFileSync('./lessons/pgc/folien.pdf');
-// const { text } = await pdf(dataBuffer);
-// const altTexts = await mhtmExtractAlts('lessons\\pgc\\folien.mht');
-// (async () => {
-//   const worker = await createWorker('deu');
-//   const ret = await worker.recognize('./lessons/pgc/folien.pdf');
-//   console.log(ret.data.text);
-//   await worker.terminate();
-// })();
-
 import { Command } from '@cliffy/command';
 import { spinner } from './spinner.ts';
 import { createJSONFromText, extractTextFromFile } from './entry.ts';
 import { spreadByTimeOnly } from './entry.ts';
 import dayjs from 'dayjs';
 import { DateRange, IncuriaError } from './types.ts';
+import { officeImageExtract } from './office_image_extract.ts';
 
 function preprocessDates(dates: string[]) {
   if (dates.length < 2 || dates.length % 2 != 0) {
@@ -38,6 +29,18 @@ function preprocessDates(dates: string[]) {
 await new Command()
   .name('incuria')
   .version('1.0.0')
+  .command('image')
+  .option(
+    '-i, --input <input:string>',
+    'Datei die aus der der Text extrahiert werden soll.',
+    { required: true }
+  )
+  .option('-o, --output <output:string>', 'Wo Datei gespeichert werden soll.', {
+    default: './output.txt',
+  })
+  .action(async (options: { input: string; output: string }) => {
+    await officeImageExtract(options.input);
+  })
   .command('extract')
   .option(
     '-i, --input <input:string>',

@@ -11,6 +11,7 @@
     "cheerio": "npm:cheerio@^1.0.0",
     "cliffy": "npm:cliffy@^2.5.1",
     "dayjs": "npm:dayjs@^1.11.13",
+    "jszip": "npm:jszip@^3.10.1",
     "officeparser": "npm:officeparser@^5.1.1",
     "openai": "npm:openai@^4.87.3",
     "ora": "npm:ora@^8.2.0",
