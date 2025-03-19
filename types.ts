@@ -9,6 +9,7 @@ export interface Entry {
 export interface DateRange {
   startDate: string | Date | Dayjs;
   endDate: string | Date | Dayjs;
+  hours?: number;
 }
 
 export class IncuriaError extends Error {}

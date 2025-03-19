@@ -9,10 +9,17 @@ export function spreadEntriesAcrossWeeks(
   entries: Entry[],
   dateRanges: DateRange[]
 ): Required<Entry>[] {
-  const datesAsDayjs = dateRanges.map(({ startDate, endDate }) => ({
+  const datesAsDayjs = dateRanges.map(({ startDate, endDate, hours }) => ({
     startDate: dayjs(startDate),
     endDate: dayjs(endDate),
+    hours,
   }));
+
+  const hoursSum = datesAsDayjs.reduce(
+    (prev, { startDate, endDate, hours }) =>
+      prev + (hours ?? endDate.day(1).diff(startDate.day(1), 'week') + 1),
+    0
+  );
 
   const sorted = datesAsDayjs.sort((a, b) =>
     a.startDate.diff(b.startDate, 'day')
@@ -24,15 +31,32 @@ export function spreadEntriesAcrossWeeks(
     return prev + endDate.day(1).diff(startDate.day(1), 'week') + 1;
   }, 0);
 
-  const entriesPerWeek = Math.floor(entries.length / weeks);
-
   const newEntries: Required<Entry>[] = [];
 
+  const adjustedForHours = sorted.map((week) => ({
+    ...week,
+    entriesPerWeek: Math.floor(entries.length * ((week.hours ?? 1) / hoursSum)),
+  }));
+
   let currWeekIndex = 0;
+  let entriesTotal = 0;
   let mondayOfWeek = dayjs(minWeek.startDate).day(1);
 
-  for (let i = 0; i < weeks * entriesPerWeek; i += entriesPerWeek) {
-    const { startDate, endDate } = sorted[currWeekIndex];
+  for (let i = 0; i < weeks; i += 1) {
+    const { entriesPerWeek, startDate, endDate } =
+      adjustedForHours[currWeekIndex];
+
+    for (let j = 0; j < entriesPerWeek; j++) {
+      newEntries.push(
+        cloneObjectWithDate(entries, entriesTotal + j, mondayOfWeek)
+      );
+    }
+
+    entriesTotal += entriesPerWeek;
+
+    if (i * entriesPerWeek + entriesPerWeek < weeks * entriesPerWeek)
+      mondayOfWeek = mondayOfWeek.add(7, 'day');
+
     if (
       !(
         mondayOfWeek.week() >= startDate.week() &&
@@ -42,15 +66,9 @@ export function spreadEntriesAcrossWeeks(
       currWeekIndex++;
       mondayOfWeek = sorted[currWeekIndex].startDate.day(1);
     }
-    for (let j = 0; j < entriesPerWeek; j++) {
-      newEntries.push(cloneObjectWithDate(entries, i + j, mondayOfWeek));
-    }
-
-    if (i + entriesPerWeek < weeks * entriesPerWeek)
-      mondayOfWeek = mondayOfWeek.add(7, 'day');
   }
 
-  if (entries.length % weeks != 0) {
+  if (entries.length > entriesTotal) {
     newEntries.push(
       cloneObjectWithDate(entries, entries.length - 1, mondayOfWeek)
     );
