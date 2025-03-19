@@ -6,25 +6,41 @@ import { spinner } from './spinner.ts';
 import { DateRange, Entry, IncuriaError } from './types.ts';
 import * as of from 'officeparser';
 
+export enum FileFormat {
+  MHT = 'mht',
+  DOCX = 'docx',
+  PDF = 'pdf',
+  PPTX = 'pptx',
+  XLSX = 'xlsx',
+  ODT = 'odt',
+  ODP = 'odp',
+  ODS = 'ods',
+  JPG = 'jpg',
+  PNG = 'png',
+  DIRECTORY = '/',
+}
+
 export type ExtractFunction = (input: string) => string;
 
 async function writeEntriesToFile(entries: Entry[], output: string) {
   await fs.writeFileSync(output, `{"lessons": ${JSON.stringify(entries)}}`);
 }
 
-export async function extractTextFromFile(input: string) {
-  const fileFormat = input.split('.').at(-1) ?? '';
-  switch (fileFormat) {
-    case 'mht':
-      return mhtmExtractAlts(await fs.readFileSync(input, 'utf-8'));
-    case 'docx':
-    case 'pdf':
-    case 'pptx':
-    case 'xlsx':
-    case 'odt':
-    case 'odp':
-    case 'ods':
-      return of.parseOfficeAsync(input);
+export function extractTextFromFile(
+  text: string,
+  filFormat: FileFormat | string
+) {
+  switch (filFormat) {
+    case FileFormat.MHT:
+      return mhtmExtractAlts(text);
+    case FileFormat.DOCX:
+    case FileFormat.PDF:
+    case FileFormat.PPTX:
+    case FileFormat.XLSX:
+    case FileFormat.ODT:
+    case FileFormat.ODP:
+    case FileFormat.ODS:
+      return of.parseOfficeAsync(text);
     default:
       throw new IncuriaError('Dieses Format ist nicht unterstützt.');
   }
@@ -36,7 +52,8 @@ export async function createJSONFromText(
   dateRanges: DateRange[]
 ) {
   spinner.text = 'Datei wird verarbeitet.';
-  const extracted = await extractTextFromFile(input);
+  const fileFormat = input.split('.').at(-1) ?? '';
+  const extracted = await extractTextFromFile(input, fileFormat);
   const { entries, rejected, invalidJSONCompletions } = await getCompletions(
     extracted
   );

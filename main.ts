@@ -8,7 +8,7 @@ import { createJSONFromText, extractTextFromFile } from './entry.ts';
 import { spreadByTimeOnly } from './entry.ts';
 import dayjs from 'dayjs';
 import { DateRange, IncuriaError } from './types.ts';
-import { officeImageExtract } from './office_image_extract.ts';
+import { officeImageExtract } from './text_from_image.ts';
 
 function preprocessDates(dates: string[]) {
   if (dates.length < 2 || dates.length % 2 != 0) {
@@ -51,7 +51,10 @@ await new Command()
     default: './output.txt',
   })
   .action(async (options: { input: string; output: string }) => {
-    const text = await extractTextFromFile(options.input);
+    const text = await extractTextFromFile(
+      options.input,
+      options.input.split('.').at(-1) ?? ''
+    );
     await fs.writeFileSync(options.output, text);
   })
   .command('complete')
