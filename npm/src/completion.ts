@@ -1,13 +1,14 @@
+import * as dntShim from "./_dnt.shims.js";
 import OpenAI from 'openai';
-import { spinner } from './spinner.ts';
-import { Entry } from './types.ts';
+import { spinner } from './spinner.js';
+import { Entry } from './types.js';
 
 const MAX_CHUNK_SIZE = 15000;
 
 export async function getCompletions(text: string) {
   const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com',
-    apiKey: Deno.env.get('DS_KEY'),
+    apiKey: dntShim.Deno.env.get('DS_KEY'),
   });
 
   const messages = splitByMaxLength(text);

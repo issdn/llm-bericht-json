@@ -6,3 +6,4 @@ lessons/
 *.txt
 *.json
 *.docx
+node_modules/
