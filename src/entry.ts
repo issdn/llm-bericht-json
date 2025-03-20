@@ -1,49 +1,14 @@
 import { getCompletions } from './completion.ts';
-import { mhtmExtractAlts } from './mhtm_extract_alts.ts';
 import * as fs from 'node:fs';
 import { spreadEntriesAcrossWeeks } from './time_spread.ts';
 import { spinner } from './spinner.ts';
-import { DateRange, Entry, IncuriaError } from './types.ts';
-import * as of from 'officeparser';
-
-export enum FileFormat {
-  MHT = 'mht',
-  DOCX = 'docx',
-  PDF = 'pdf',
-  PPTX = 'pptx',
-  XLSX = 'xlsx',
-  ODT = 'odt',
-  ODP = 'odp',
-  ODS = 'ods',
-  JPG = 'jpg',
-  PNG = 'png',
-  DIRECTORY = '/',
-}
+import { DateRange, Entry } from './types.ts';
+import { extractTextFromFile } from './text_from_file.ts';
 
 export type ExtractFunction = (input: string) => string;
 
 async function writeEntriesToFile(entries: Entry[], output: string) {
   await fs.writeFileSync(output, `{"lessons": ${JSON.stringify(entries)}}`);
-}
-
-export function extractTextFromFile(
-  text: string,
-  filFormat: FileFormat | string
-) {
-  switch (filFormat) {
-    case FileFormat.MHT:
-      return mhtmExtractAlts(text);
-    case FileFormat.DOCX:
-    case FileFormat.PDF:
-    case FileFormat.PPTX:
-    case FileFormat.XLSX:
-    case FileFormat.ODT:
-    case FileFormat.ODP:
-    case FileFormat.ODS:
-      return of.parseOfficeAsync(text);
-    default:
-      throw new IncuriaError('Dieses Format ist nicht unterstützt.');
-  }
 }
 
 export async function createJSONFromText(

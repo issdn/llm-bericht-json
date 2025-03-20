@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import JSZip from 'jszip';
 import { createWorker } from 'tesseract.js';
+import * as pdfjsLib from 'pdfjs-dist';
 
 export async function officeImageExtract(filepath: string) {
   const zip = new JSZip();
@@ -19,10 +20,34 @@ export async function officeImageExtract(filepath: string) {
     }
   }
 
+  const result: string[] = [];
   const worker = await createWorker('deu');
   for (const image of images) {
-    const ret = await worker.recognize(image.data);
-    console.log(ret.data.text);
+    result.push((await worker.recognize(image.data)).data.text);
   }
   await worker.terminate();
+}
+
+export async function pdfImageExtract(pdfUrl: string) {
+  const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+  const numPages = pdf.numPages;
+
+  const result: string[] = [];
+
+  const worker = await createWorker('deu');
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const operatorList = await page.getOperatorList();
+
+    for (let j = 0; j < operatorList.fnArray.length; j++) {
+      if (operatorList.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
+        const imgIndex = operatorList.argsArray[j][0];
+        const img = await page.objs.get(imgIndex);
+        result.push((await worker.recognize(img)).data.text);
+      }
+    }
+  }
+  await worker.terminate();
+
+  return result;
 }
