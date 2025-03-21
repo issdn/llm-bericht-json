@@ -1,8 +1,10 @@
 import JSZip from 'jszip';
-import { createWorker } from 'tesseract.js';
 import { XMLParser } from 'fast-xml-parser';
 
-export async function parseDOCX(data: Uint8Array, withImages: boolean = true) {
+export async function* parseDOCX(
+  data: Uint8Array,
+  worker: Tesseract.Worker | null = null
+) {
   const zip = new JSZip();
   const docx = await zip.loadAsync(data);
   const parser = new XMLParser({
@@ -11,31 +13,31 @@ export async function parseDOCX(data: Uint8Array, withImages: boolean = true) {
   });
 
   const textsOrRelIds: (string | [string])[] = [];
-  const worker = await createWorker('deu');
-  for (const fileName of Object.keys(docx.files)) {
-    if (fileName.startsWith('word/document.xml')) {
-      const fileData = await docx.files[fileName].async('string');
-      const xml = parser.parse(fileData);
-      findAllWT(xml, textsOrRelIds, withImages);
-    }
-  }
+  const withImages = worker !== null;
+
+  const fileData = await docx.files['word/document.xml'].async('string');
+  const xml = parser.parse(fileData);
+  findAllWT(xml, textsOrRelIds, withImages);
 
   const { images, imgRels } = withImages
     ? await mapImagesToRels(docx, parser)
     : { images: new Map(), imgRels: new Map() };
 
-  const texts = await Promise.allSettled(
-    textsOrRelIds.map(async (textOrId) => {
+  try {
+    for (const textOrId of textsOrRelIds) {
       if (Array.isArray(textOrId)) {
-        const fileData = images.get(imgRels.get(textOrId[0])!);
-        return (await worker.recognize(fileData)).data.text;
+        const fileData = images.get(imgRels.get(textOrId[0]));
+        if (withImages) {
+          const result = await worker.recognize(fileData);
+          yield result.data.text;
+        }
+      } else {
+        yield textOrId;
       }
-      return textOrId;
-    })
-  );
-  await worker.terminate();
-
-  return texts;
+    }
+  } finally {
+    if (withImages) await worker.terminate();
+  }
 }
 
 function findAllWT(

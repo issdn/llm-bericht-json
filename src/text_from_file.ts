@@ -1,7 +1,7 @@
 import { parseDOCX } from './docx_parser.ts';
 import { mhtmExtractAlts } from './mhtm_extract_alts.ts';
 import { parsePDF } from './pdf_parser.ts';
-import { IncuriaError } from './types.ts';
+import { IncuriaError, IncuriaErrorType } from './types.ts';
 
 export enum FileFormat {
   MHT = 'mht',
@@ -25,8 +25,8 @@ export function extractTextFromFile(
       return parsePDF(text as Uint8Array);
     case FileFormat.DOCX:
     case FileFormat.PPTX:
-      return parseDOCX(text as Uint8Array, withImages);
+      return parseDOCX(text as Uint8Array);
     default:
-      throw new IncuriaError('Dieses Format ist nicht unterstützt.');
+      throw new IncuriaError(IncuriaErrorType.FORMAT_NOT_SUPPORTED);
   }
 }
