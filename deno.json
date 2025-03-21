@@ -10,6 +10,7 @@
     "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
     "@std/assert": "jsr:@std/assert@1",
     "axios": "npm:axios@^1.8.3",
+    "canvas": "npm:canvas@^3.1.0",
     "cheerio": "npm:cheerio@^1.0.0",
     "cliffy": "npm:cliffy@^2.5.1",
     "dayjs": "npm:dayjs@^1.11.13",
@@ -19,7 +20,7 @@
     "openai": "npm:openai@^4.87.3",
     "ora": "npm:ora@^8.2.0",
     "pdf-parse": "npm:pdf-parse@^1.1.1",
-    "pdfjs-dist": "npm:pdfjs-dist@^5.0.375",
+    "pdfjs-dist": "npm:pdfjs-dist@4.8.69",
     "tesseract.js": "npm:tesseract.js@^6.0.0"
   }
 }

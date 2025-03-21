@@ -7,3 +7,4 @@ lessons/
 *.json
 *.docx
 node_modules/
+*.png

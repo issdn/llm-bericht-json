@@ -4,11 +4,12 @@ import * as fs from 'node:fs';
 
 import { Command } from '@cliffy/command';
 import { spinner } from './spinner.ts';
-import { createJSONFromText, extractTextFromFile } from './entry.ts';
+import { createJSONFromText } from './entry.ts';
 import { spreadByTimeOnly } from './entry.ts';
 import dayjs from 'dayjs';
 import { DateRange, IncuriaError } from './types.ts';
 import { officeImageExtract } from './text_from_image.ts';
+import { extractTextFromFile } from './text_from_file.ts';
 
 function preprocessDates(dates: string[]) {
   if (dates.length < 2 || dates.length % 2 != 0) {
