@@ -4,7 +4,7 @@ import { assertEquals } from '@std/assert/equals';
 import { parseDOCX } from './docx_parser.ts';
 
 Deno.test('Read text from docx kurwa', async () => {
-  const file = await fs.readFileSync('./src/text_img.docx');
+  const file = await fs.readFileSync('./src/veryBig.docx');
   const res = await parseDOCX(file);
 
   assertEquals(
