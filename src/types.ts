@@ -15,13 +15,14 @@ export interface DateRange {
 export enum IncuriaErrorType {
   INVALID_FILE,
   FORMAT_NOT_SUPPORTED,
+  DEVELOPERS_FAULT,
 }
 
 export class IncuriaError extends Error {
   public type: IncuriaErrorType;
 
-  constructor(type: IncuriaErrorType) {
-    super();
+  constructor(type: IncuriaErrorType, message: string) {
+    super(message);
     this.type = type;
   }
 }

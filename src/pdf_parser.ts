@@ -1,35 +1,66 @@
-import { createCanvas } from 'canvas';
 import * as pdf from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { createWorker } from 'tesseract.js';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api.js';
+import { IncuriaError } from './types.ts';
+import { IncuriaErrorType } from './types.ts';
 
-async function extractFromPage(page: pdf.PDFPageProxy) {
+type ImageExtractProp = {
+  worker: Tesseract.Worker | null;
+  getNewCanvas:
+    | ((
+        width: number,
+        height: number
+      ) => { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D })
+    | null;
+};
+
+async function extractFromPage(
+  page: pdf.PDFPageProxy,
+  { worker, getNewCanvas }: ImageExtractProp = {
+    worker: null,
+    getNewCanvas: null,
+  }
+) {
   const ops = (await page.getOperatorList()).fnArray;
   const viewport = page.getViewport({ scale: 1 });
-  const canvas = createCanvas(viewport.width, viewport.height);
-  const context = canvas.getContext('2d');
 
   const imageXObjects = ops.filter((op) => op === pdf.OPS.paintImageXObject);
 
-  if (imageXObjects.length === 0) {
-    return (await page.getTextContent()).items.map((c) => c);
+  if (imageXObjects.length === 0 || worker === null) {
+    return (await page.getTextContent()).items
+      .map((c) => (c as TextItem).str)
+      .join('/n');
   }
+
+  if (getNewCanvas === null) {
+    throw new IncuriaError(
+      IncuriaErrorType.DEVELOPERS_FAULT,
+      'To use text from image extraction you have to pass getNewCanvas.'
+    );
+  }
+
+  const { canvas, context } = getNewCanvas(viewport.width, viewport.height);
 
   await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-  const worker = await createWorker('deu');
-  const text = (await worker.recognize(canvas.toBuffer())).data.text;
-  await worker.terminate();
+  const blob = await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((blob) => (blob === null ? reject() : resolve(blob)))
+  );
+
+  const text = (await worker.recognize(blob)).data.text;
   return text;
 }
 
-export async function parsePDF(data: Uint8Array) {
+export async function* parsePDF(
+  data: Uint8Array,
+  imageExtractProp: ImageExtractProp = {
+    worker: null,
+    getNewCanvas: null,
+  }
+) {
   const pdfDocument = await pdf.getDocument(data).promise;
 
-  const pages: pdf.PDFPageProxy[] = [];
-
   for (let i = 1; i <= pdfDocument.numPages; i++) {
-    pages.push(await pdfDocument.getPage(i));
+    const page = await pdfDocument.getPage(i);
+    yield extractFromPage(page, imageExtractProp);
   }
-
-  return await Promise.allSettled(pages.map((p) => extractFromPage(p)));
 }

@@ -3,9 +3,10 @@ import { parsePDF } from './pdf_parser.ts';
 import { assertEquals } from '@std/assert/equals';
 import { parseDOCX } from './docx_parser.ts';
 import { createWorker } from 'tesseract.js';
+import { createCanvas } from 'canvas';
 
 Deno.test('Read text from docx kurwa', async () => {
-  const worker = await createWorker('deu');
+  const worker = await createWorker('eng');
   const file = await fs.readFileSync('./src/text_img.docx');
   const stream = parseDOCX(file, worker);
   const response: string[] = [];
@@ -18,11 +19,28 @@ Deno.test('Read text from docx kurwa', async () => {
 });
 
 Deno.test('Read text from pdf kurwa', async () => {
+  const worker = await createWorker('eng');
   const file = await fs.readFileSync('./src/text_img.pdf');
-  const res = await parsePDF(new Uint8Array(file));
+  const stream = parsePDF(new Uint8Array(file), {
+    worker,
+    getNewCanvas: (width, height) => {
+      const canvas = createCanvas(
+        width,
+        height
+      ) as unknown as HTMLCanvasElement;
+      canvas.toBlob = function (callback) {
+        // deno-lint-ignore no-explicit-any
+        callback((canvas as any).toBuffer());
+      };
+      return { canvas, context: canvas.getContext('2d')! };
+    },
+  });
+  const response: string[] = [];
 
-  assertEquals(
-    res.map((i) => (i as PromiseFulfilledResult<string>).value),
-    ['NORMAL TEXT', 'IMAGE TEXT\n']
-  );
+  for await (const text of stream) {
+    response.push(text);
+  }
+
+  await worker.terminate();
+  assertEquals(response, ['NORMAL TEXT', 'IMAGE TEXT\n']);
 });

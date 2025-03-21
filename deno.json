@@ -1,4 +1,8 @@
 {
+  "compilerOptions": {
+    "lib": ["dom", "deno.ns", "deno.window"],
+    "types": ["@types/node"]
+  },
   "nodeModulesDir": "auto",
   "tasks": {
     "dev": "deno run --watch main.ts"
@@ -9,6 +13,7 @@
     "@cliffy/flags": "jsr:@cliffy/flags@^1.0.0-rc.7",
     "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
     "@std/assert": "jsr:@std/assert@1",
+    "@types/node": "npm:@types/node@^22.13.11",
     "axios": "npm:axios@^1.8.3",
     "canvas": "npm:canvas@^3.1.0",
     "cheerio": "npm:cheerio@^1.0.0",
