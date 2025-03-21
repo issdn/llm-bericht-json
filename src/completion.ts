@@ -1,10 +1,12 @@
 import OpenAI from 'openai';
-import { spinner } from '../src/spinner.ts';
 import { Entry } from '../src/types.ts';
 
 const MAX_CHUNK_SIZE = 15000;
 
-export async function getCompletions(text: string) {
+export async function getCompletions(
+  text: string,
+  system_prompt: string = context_prompt
+) {
   const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com',
     apiKey: Deno.env.get('DS_KEY'),
@@ -13,13 +15,12 @@ export async function getCompletions(text: string) {
   const messages = splitByMaxLength(text);
 
   let answersFromAPI = 0;
-  spinner.text = `LLM Antworten: ${answersFromAPI}/${messages.length}`;
   const completionsPromises = messages.map(async (t) => {
     const completion = await openai.chat.completions.create({
       messages: [
         {
           role: 'system',
-          content: context_prompt,
+          content: system_prompt,
         },
         {
           role: 'user',
@@ -30,7 +31,6 @@ export async function getCompletions(text: string) {
       response_format: { type: 'json_object' },
     });
     answersFromAPI++;
-    spinner.text = `LLM Antworten: ${answersFromAPI}/${messages.length}`;
     return completion.choices[0].message.content;
   });
 
