@@ -1,5 +1,5 @@
 import { Entry } from './types.js';
-export declare function getCompletions(text: string): Promise<{
+export declare function getCompletions(text: string, system_prompt?: string): Promise<{
     entries: Entry[];
     rejected: string[];
     invalidJSONCompletions: string;
