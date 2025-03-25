@@ -1,19 +1,17 @@
-import * as dntShim from "./_dnt.shims.js";
 import OpenAI from 'openai';
-const MAX_CHUNK_SIZE = 15000;
-export async function getCompletions(text, system_prompt = context_prompt) {
+export async function getCompletions(text, systemPrompt = context_prompt, apiKey, maxChunkSize = 15000) {
     const openai = new OpenAI({
         baseURL: 'https://api.deepseek.com',
-        apiKey: dntShim.Deno.env.get('DS_KEY'),
+        apiKey,
     });
-    const messages = splitByMaxLength(text);
+    const messages = splitByMaxLength(text, maxChunkSize);
     let answersFromAPI = 0;
     const completionsPromises = messages.map(async (t) => {
         const completion = await openai.chat.completions.create({
             messages: [
                 {
                     role: 'system',
-                    content: system_prompt,
+                    content: systemPrompt,
                 },
                 {
                     role: 'user',
@@ -47,7 +45,7 @@ export async function getCompletions(text, system_prompt = context_prompt) {
     });
     return { entries, rejected, invalidJSONCompletions };
 }
-function splitByMaxLength(text, maxLength = MAX_CHUNK_SIZE) {
+function splitByMaxLength(text, maxLength) {
     const regex = new RegExp(`.{1,${maxLength}}`, 'gs');
     return text.match(regex) || [];
 }

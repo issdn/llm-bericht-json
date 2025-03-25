@@ -18,7 +18,11 @@ await build({
     name: 'llm-berichtsheft-json',
     version: Deno.args[0],
     description: '',
+    author: 'karol.bielski@gmx.de',
+    private: true,
     license: 'MIT',
+    main: 'esm/main.js',
+    types: 'esm/main.d.ts',
     repository: {
       type: 'git',
       url: 'https://github.com/issdn/llm-bericht-json.git',

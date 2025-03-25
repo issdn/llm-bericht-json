@@ -2,9 +2,10 @@ import * as pdf from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api.js';
 import { IncuriaError } from './types.js';
 import { IncuriaErrorType } from './types.js';
+import type { Worker } from 'tesseract.js';
 
 type ImageExtractProp = {
-  worker: Tesseract.Worker | null;
+  worker: Worker | null;
   getNewCanvas:
     | ((
         width: number,

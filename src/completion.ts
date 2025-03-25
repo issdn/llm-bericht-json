@@ -1,18 +1,18 @@
 import OpenAI from 'openai';
 import { Entry } from '../src/types.ts';
 
-const MAX_CHUNK_SIZE = 15000;
-
 export async function getCompletions(
   text: string,
-  system_prompt: string = context_prompt
+  systemPrompt: string = context_prompt,
+  apiKey: string,
+  maxChunkSize = 15000
 ) {
   const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com',
-    apiKey: Deno.env.get('DS_KEY'),
+    apiKey,
   });
 
-  const messages = splitByMaxLength(text);
+  const messages = splitByMaxLength(text, maxChunkSize);
 
   let answersFromAPI = 0;
   const completionsPromises = messages.map(async (t) => {
@@ -20,7 +20,7 @@ export async function getCompletions(
       messages: [
         {
           role: 'system',
-          content: system_prompt,
+          content: systemPrompt,
         },
         {
           role: 'user',
@@ -59,7 +59,7 @@ export async function getCompletions(
   return { entries, rejected, invalidJSONCompletions };
 }
 
-function splitByMaxLength(text: string, maxLength: number = MAX_CHUNK_SIZE) {
+function splitByMaxLength(text: string, maxLength: number) {
   const regex = new RegExp(`.{1,${maxLength}}`, 'gs');
   return text.match(regex) || [];
 }
