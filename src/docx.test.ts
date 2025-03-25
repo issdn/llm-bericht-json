@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { parsePDF } from './pdf_parser.ts';
+import { parsePDF, parsePDFData } from './pdf_parser.ts';
 import { assertEquals } from '@std/assert/equals';
 import { parseDOCX, parseDOCXData } from './docx_parser.ts';
 import { createWorker } from 'tesseract.js';
@@ -22,7 +22,7 @@ Deno.test('Read text from docx kurwa', async () => {
 Deno.test('Read text from pdf kurwa', async () => {
   const worker = await createWorker('eng');
   const file = await fs.readFileSync('./src/text_img.pdf');
-  const stream = parsePDF(new Uint8Array(file), {
+  const stream = parsePDF(await parsePDFData(new Uint8Array(file)), {
     worker,
     getNewCanvas: (width, height) => {
       const canvas = createCanvas(
