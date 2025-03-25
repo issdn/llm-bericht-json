@@ -6,6 +6,7 @@ type ImageExtractProp = {
         context: CanvasRenderingContext2D;
     }) | null;
 };
-export declare function parsePDF(data: Uint8Array, imageExtractProp?: ImageExtractProp): AsyncGenerator<string, void, unknown>;
+export declare function parsePDFData(data: Uint8Array): Promise<import("pdfjs-dist/types/src/display/api.js").PDFDocumentProxy>;
+export declare function parsePDF(data: Awaited<ReturnType<typeof parsePDFData>>, imageExtractProp?: ImageExtractProp): AsyncGenerator<string, void, unknown>;
 export {};
 //# sourceMappingURL=pdf_parser.d.ts.map

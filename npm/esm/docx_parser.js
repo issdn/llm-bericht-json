@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { XMLParser } from 'fast-xml-parser';
-export async function* parseDOCX(data, worker = null) {
+export async function parseDOCXData(data, worker = null) {
     const zip = new JSZip();
     const docx = await zip.loadAsync(data);
     const parser = new XMLParser({
@@ -12,13 +12,28 @@ export async function* parseDOCX(data, worker = null) {
     const fileData = await docx.files['word/document.xml'].async('string');
     const xml = parser.parse(fileData);
     findAllWT(xml, textsOrRelIds, withImages);
-    const { images, imgRels } = withImages
+    const imagesAndRels = withImages
         ? await mapImagesToRels(docx, parser)
-        : { images: new Map(), imgRels: new Map() };
+        : {
+            images: new Map(),
+            imgRels: new Map(),
+        };
+    return { ...imagesAndRels, withImages, textsOrRelIds };
+}
+export async function* parseDOCX({ images, imgRels, withImages, textsOrRelIds, }, worker = null) {
     try {
         for (const textOrId of textsOrRelIds) {
             if (Array.isArray(textOrId)) {
-                const fileData = images.get(imgRels.get(textOrId[0]));
+                const rel = imgRels.get(textOrId[0]);
+                if (rel === undefined) {
+                    yield '';
+                    continue;
+                }
+                const fileData = images.get(rel);
+                if (fileData === undefined) {
+                    yield '';
+                    continue;
+                }
                 if (withImages) {
                     const result = await worker.recognize(fileData);
                     yield result.data.text;

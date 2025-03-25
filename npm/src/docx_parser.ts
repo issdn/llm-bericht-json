@@ -1,7 +1,8 @@
 import JSZip from 'jszip';
 import { XMLParser } from 'fast-xml-parser';
+import { ImageLike } from 'tesseract.js';
 
-export async function* parseDOCX(
+export async function parseDOCXData(
   data: Uint8Array,
   worker: Tesseract.Worker | null = null
 ) {
@@ -19,16 +20,40 @@ export async function* parseDOCX(
   const xml = parser.parse(fileData);
   findAllWT(xml, textsOrRelIds, withImages);
 
-  const { images, imgRels } = withImages
+  const imagesAndRels = withImages
     ? await mapImagesToRels(docx, parser)
-    : { images: new Map(), imgRels: new Map() };
+    : {
+        images: new Map<string, Uint8Array>(),
+        imgRels: new Map<string, string>(),
+      };
 
+  return { ...imagesAndRels, withImages, textsOrRelIds };
+}
+
+export async function* parseDOCX(
+  {
+    images,
+    imgRels,
+    withImages,
+    textsOrRelIds,
+  }: Awaited<ReturnType<typeof parseDOCXData>>,
+  worker: Tesseract.Worker | null = null
+) {
   try {
     for (const textOrId of textsOrRelIds) {
       if (Array.isArray(textOrId)) {
-        const fileData = images.get(imgRels.get(textOrId[0]));
+        const rel = imgRels.get(textOrId[0]);
+        if (rel === undefined) {
+          yield '';
+          continue;
+        }
+        const fileData = images.get(rel);
+        if (fileData === undefined) {
+          yield '';
+          continue;
+        }
         if (withImages) {
-          const result = await worker.recognize(fileData);
+          const result = await worker!.recognize(fileData as ImageLike);
           yield result.data.text;
         }
       } else {
@@ -36,7 +61,7 @@ export async function* parseDOCX(
       }
     }
   } finally {
-    if (withImages) await worker.terminate();
+    if (withImages) await worker!.terminate();
   }
 }
 

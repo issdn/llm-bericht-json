@@ -3,7 +3,6 @@ import type { TextItem } from 'pdfjs-dist/types/src/display/api.js';
 import { IncuriaError } from './types.js';
 import { IncuriaErrorType } from './types.js';
 import type { Worker } from 'tesseract.js';
-
 type ImageExtractProp = {
   worker: Worker | null;
   getNewCanvas:
@@ -13,6 +12,10 @@ type ImageExtractProp = {
       ) => { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D })
     | null;
 };
+
+export async function parsePDFData(data: Uint8Array) {
+  return await pdf.getDocument(data).promise;
+}
 
 async function extractFromPage(
   page: pdf.PDFPageProxy,
@@ -52,16 +55,14 @@ async function extractFromPage(
 }
 
 export async function* parsePDF(
-  data: Uint8Array,
+  data: Awaited<ReturnType<typeof parsePDFData>>,
   imageExtractProp: ImageExtractProp = {
     worker: null,
     getNewCanvas: null,
   }
 ) {
-  const pdfDocument = await pdf.getDocument(data).promise;
-
-  for (let i = 1; i <= pdfDocument.numPages; i++) {
-    const page = await pdfDocument.getPage(i);
+  for (let i = 1; i <= data.numPages; i++) {
+    const page = await data.getPage(i);
     yield extractFromPage(page, imageExtractProp);
   }
 }

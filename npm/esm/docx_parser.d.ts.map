@@ -1,1 +1,1 @@
-{"version":3,"file":"docx_parser.d.ts","sourceRoot":"","sources":["../src/docx_parser.ts"],"names":[],"mappings":"AAGA,wBAAuB,SAAS,CAC9B,IAAI,EAAE,UAAU,EAChB,MAAM,GAAE,SAAS,CAAC,MAAM,GAAG,IAAW,yCAmCvC"}
+{"version":3,"file":"docx_parser.d.ts","sourceRoot":"","sources":["../src/docx_parser.ts"],"names":[],"mappings":"AAIA,wBAAsB,aAAa,CACjC,IAAI,EAAE,UAAU,EAChB,MAAM,GAAE,SAAS,CAAC,MAAM,GAAG,IAAW;;;;;GAwBvC;AAED,wBAAuB,SAAS,CAC9B,EACE,MAAM,EACN,OAAO,EACP,UAAU,EACV,aAAa,GACd,EAAE,OAAO,CAAC,UAAU,CAAC,OAAO,aAAa,CAAC,CAAC,EAC5C,MAAM,GAAE,SAAS,CAAC,MAAM,GAAG,IAAW,yCA0BvC"}
